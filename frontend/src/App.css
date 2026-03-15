@@ -1,0 +1,100 @@
+/* GLOBAL APP */
+
+.App{
+min-height:100vh;
+display:flex;
+flex-direction:column;
+background:transparent;
+}
+
+/* CENTER LAYOUT */
+
+.app-container{
+width:100%;
+max-width:1200px;
+margin:auto;
+padding:40px 20px;
+}
+
+/* PAGE TITLE */
+
+.page-title{
+font-size:28px;
+font-weight:600;
+margin-bottom:20px;
+color:#1e3a8a;
+}
+
+/* FLEX LAYOUT */
+
+.flex{
+display:flex;
+gap:25px;
+}
+
+/* CARD */
+
+.card{
+background:white;
+border-radius:12px;
+padding:25px;
+box-shadow:0 15px 30px rgba(0,0,0,0.08);
+}
+
+/* BUTTONS */
+
+.btn{
+padding:10px 16px;
+border-radius:8px;
+border:none;
+cursor:pointer;
+font-weight:500;
+transition:0.2s;
+}
+
+.btn-primary{
+background:#2563eb;
+color:white;
+}
+
+.btn-primary:hover{
+background:#1d4ed8;
+}
+
+.btn-secondary{
+background:#f1f5f9;
+}
+
+.btn-secondary:hover{
+background:#e2e8f0;
+}
+
+/* INPUTS */
+
+input,textarea{
+padding:10px;
+border-radius:6px;
+border:1px solid #d1d5db;
+font-size:14px;
+}
+
+input:focus,
+textarea:focus{
+outline:none;
+border-color:#2563eb;
+box-shadow:0 0 0 2px rgba(37,99,235,0.1);
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+
+.flex{
+flex-direction:column;
+}
+
+.app-container{
+padding:20px;
+}
+
+}
