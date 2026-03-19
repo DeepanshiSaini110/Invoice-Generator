@@ -48,10 +48,10 @@ const grandTotal = Math.max(0, subtotal + totalTax - discount);
 const downloadPDF = () => {
 const input = document.getElementById("invoice-main-ui");
 
-html2canvas(input, { scale: 2 }).then((canvas) => {
+html2canvas(input, { scale: 1 }).then((canvas) => {
 const imgData = canvas.toDataURL("image/png");
 
-const pdf = new jsPDF("p", "mm", "a4");
+const pdf = new jsPDF("p", "mm", "a4", true);
 
 const imgWidth = 190;
 const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -68,7 +68,7 @@ window.print();
 
 const [loading, setLoading] = useState(false);
 
-const sendEmail = () => {
+const sendEmail = async () => {
 
   if (!client?.email) {
     alert("Please enter client email");
@@ -76,6 +76,20 @@ const sendEmail = () => {
   }
 
   setLoading(true);
+
+  const input = document.getElementById("invoice-main-ui");
+
+  const canvas = await html2canvas(input, { scale: 2 });
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const imgWidth = 190;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+
+  const pdfBase64 = pdf.output("datauristring");
 
   fetch("http://localhost:5000/api/save-invoice", {
     method: "POST",
@@ -91,14 +105,27 @@ const sendEmail = () => {
         totalTax,
         total: grandTotal
       },
-      status: "Paid"
+      status: "Paid",
+      pdf: pdfBase64   
     })
   })
   .then(res => res.json())
   .then(data => {
-    alert(data.message);
-    setLoading(false);
-  })
+  alert(data.message);
+
+  
+  setClient({ name: "", address: "", email: "" });
+  setItems([{ desc: "", qty: 1, price: 0, tax: 0 }]);
+  setDiscount(0);
+
+  setInvoiceInfo({
+    invNumber: `INV-${Date.now()}`, 
+    date: new Date().toISOString().split("T")[0],
+    dueDate: ""
+  });
+
+  setLoading(false);
+})
   .catch(err => {
     console.error(err);
     alert("Failed to send email");
@@ -142,17 +169,20 @@ return (
 <input
 type="text"
 placeholder="Client Name"
+value={client.name}
 onChange={(e)=>setClient({...client,name:e.target.value})}
 />
 
 <input
 type="email"
 placeholder="Client Email"
+value={client.email}
 onChange={(e)=>setClient({...client,email:e.target.value})}
 />
 
 <textarea
 placeholder="Client Address"
+value={client.address}
 onChange={(e)=>setClient({...client,address:e.target.value})}
 />
 
