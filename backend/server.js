@@ -9,19 +9,21 @@ app.use(express.json());
 
 // Nodemailer transporter setup (Zoho/Gmail)
 const transporter = nodemailer.createTransport({
-    host: "smtp.zoho.in",
-    port: 465,
-    secure: true,
-    auth: {
-        user: "your-email@domain.com", // email ID
-        pass: "your-app-password"      // App Password
-    }
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "codevirus1234@gmail.com",
+    pass: "puwxnfgqlvfcdkkj" // Gmail App Password
+  }
 });
 
 app.post('/api/save-invoice', (req, res) => {
-    const { invoiceInfo, client, items, summary, status } = req.body;
+  const { invoiceInfo, client, items, summary, status } = req.body;
 
-    // Professional HTML Email Template
+  if (!client?.email || !invoiceInfo?.invNumber) {
+    return res.status(400).json({ message: "Invalid data" });
+  }
     const mailOptions = {
         from: '"My Company" <your-email@domain.com>',
         to: client.email,
@@ -41,7 +43,9 @@ app.post('/api/save-invoice', (req, res) => {
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
-        if (error) return res.status(500).json({ message: "Error sending email" });
+       if (error) {console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
         res.status(200).json({ message: "Invoice Generated & Email Sent!" });
     });
 });

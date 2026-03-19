@@ -66,28 +66,45 @@ const printInvoice = () => {
 window.print();
 };
 
+const [loading, setLoading] = useState(false);
+
 const sendEmail = () => {
 
-if (!client.email) {
-alert("Please enter client email first");
-return;
-}
+  if (!client?.email) {
+    alert("Please enter client email");
+    return;
+  }
 
-const subject = `Invoice ${invoiceInfo.invNumber}`;
+  setLoading(true);
 
-const body = `
-Hello ${client.name},
-
-Your invoice total is ₹${grandTotal.toFixed(2)}
-
-Thank you
-${companyInfo.name}
-`;
-
-window.location.href =
-`mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  fetch("http://localhost:5000/api/save-invoice", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      invoiceInfo,
+      client,
+      items,
+      summary: {
+        subtotal,
+        totalTax,
+        total: grandTotal
+      },
+      status: "Paid"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    setLoading(false);
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Failed to send email");
+    setLoading(false);
+  });
 };
-
 return (
    
     
@@ -210,7 +227,7 @@ onChange={(e)=>updateItem(index,"desc",e.target.value)}
 <input
 type="number"
 value={item.qty}
-onChange={(e)=>updateItem(index,"qty",e.target.value)}
+onChange={(e)=>updateItem(index,"qty", Number(e.target.value))}
 />
 </td>
 
@@ -218,7 +235,7 @@ onChange={(e)=>updateItem(index,"qty",e.target.value)}
 <input
 type="number"
 value={item.price}
-onChange={(e)=>updateItem(index,"price",e.target.value)}
+onChange={(e)=>updateItem(index,"price",Number(e.target.value))}
 />
 </td>
 
@@ -226,7 +243,7 @@ onChange={(e)=>updateItem(index,"price",e.target.value)}
 <input
 type="number"
 value={item.tax}
-onChange={(e)=>updateItem(index,"tax",e.target.value)}
+onChange={(e)=>updateItem(index,"tax",Number(e.target.value))}
 />
 </td>
 
@@ -298,8 +315,12 @@ Download PDF
 Print Invoice
 </button>
 
-<button className="success-btn" onClick={sendEmail}>
-Send via Email
+<button 
+  className="success-btn" 
+  onClick={sendEmail} 
+  disabled={loading}
+>
+  {loading ? "Sending..." : "Send via Email"}
 </button>
 
 </div>
