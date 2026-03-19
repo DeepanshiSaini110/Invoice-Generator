@@ -5,7 +5,8 @@ const nodemailer = require('nodemailer'); // Email functionality
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Nodemailer transporter setup (Zoho/Gmail)
 const transporter = nodemailer.createTransport({
@@ -19,35 +20,36 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/api/save-invoice', (req, res) => {
-  const { invoiceInfo, client, items, summary, status } = req.body;
+  const { invoiceInfo, client, summary, status, pdf } = req.body;
 
   if (!client?.email || !invoiceInfo?.invNumber) {
     return res.status(400).json({ message: "Invalid data" });
   }
-    const mailOptions = {
-        from: '"My Company" <your-email@domain.com>',
-        to: client.email,
-        subject: `Payment Confirmation & Invoice: ${invoiceInfo.invNumber}`,
-        html: `
-            <div style="font-family: Arial; padding: 20px; border: 1px solid #eee;">
-                <h2>Hello ${client.name},</h2>
-                <p>Thank you for your payment. Please find your invoice details below:</p>
-                <hr/>
-                <p><b>Invoice Number:</b> ${invoiceInfo.invNumber}</p>
-                <p><b>Amount Paid:</b> ₹${summary.total}</p>
-                <p><b>Status:</b> <span style="color: green;">${status}</span></p>
-                <br/>
-                <p>Regards,<br/>My Company</p>
-            </div>
-        `
-    };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-       if (error) {console.error(error);
-        return res.status(500).json({ message: error.message });
+  const mailOptions = {
+    from: '"My Company" <codevirus1234@gmail.com>',
+    to: client.email,
+    subject: `Invoice: ${invoiceInfo.invNumber}`,
+    html: `
+      <h2>Hello ${client.name}</h2>
+      <p>Your invoice is attached.</p>
+      <p><b>Total:</b> ₹${summary.total}</p>
+    `,
+    attachments: [
+      {
+        filename: `Invoice-${invoiceInfo.invNumber}.pdf`,
+        content: pdf.split("base64,")[1], 
+        encoding: "base64"
+      }
+    ]
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ message: error.message });
     }
-        res.status(200).json({ message: "Invoice Generated & Email Sent!" });
-    });
+    res.status(200).json({ message: "Invoice + PDF Sent Successfully!" });
+  });
 });
-
 app.listen(5000, () => console.log("Backend running on port 5000"));
